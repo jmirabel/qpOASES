@@ -21,7 +21,7 @@
 ##
 
 
-
+##     Original file
 ##
 ##     Filename:  CMakeLists.txt
 ##     Author:    Hans Joachim Ferreau (thanks to Milan Vukov)
@@ -29,16 +29,25 @@
 ##     Date:      2007-2015
 ##
 
-cmake_minimum_required(VERSION 2.6)
+##     updates
+##
+##     Author:    Joseph Mirabel
+##     Version:   3.2
+##     Date:      2015
+##
 
-PROJECT(qpOASES CXX)
-SET(PACKAGE_NAME "qpOASES")
-SET(PACKAGE_VERSION "3.2.0")
-SET(PACKAGE_SO_VERSION "3.2")
-SET(PACKAGE_DESCRIPTION "An implementation of the online active set strategy")
-SET(PACKAGE_AUTHOR "Hans Joachim Ferreau, Andreas Potschka, Christian Kirches et al.")
-SET(PACKAGE_MAINTAINER "Hans Joachim Ferreau, Andreas Potschka, Christian Kirches et al.")
-SET(PACKAGE_URL "https://projects.coin-or.org/qpOASES")
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+SET(CXX_DISABLE_WERROR TRUE)
+INCLUDE(cmake/base.cmake)
+
+SET(PROJECT_NAME "qpOASES")
+SET(PROJECT_VERSION "3.2.0")
+SET(PROJECT_SO_VERSION "3.2")
+SET(PROJECT_DESCRIPTION "An implementation of the online active set strategy")
+SET(PROJECT_AUTHOR "Hans Joachim Ferreau, Andreas Potschka, Christian Kirches et al.")
+SET(PROJECT_MAINTAINER "Hans Joachim Ferreau, Andreas Potschka, Christian Kirches et al.")
+SET(PROJECT_URL "https://projects.coin-or.org/qpOASES")
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/libs)
@@ -90,37 +99,58 @@ if("${isSystemDir}" STREQUAL "-1")
    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib:${CMAKE_INSTALL_PREFIX}/lib/casadi")
 endif("${isSystemDir}" STREQUAL "-1")
 
+SETUP_PROJECT()
 
+# Add dependency toward qpOASES library in pkg-config file.
+PKG_CONFIG_APPEND_LIBS("qpOASES")
 
 ############################################################
 #################### build and install #####################
 ############################################################
+SET(${PROJECT_NAME}_HEADERS
+  include/qpOASES.hpp
+  include/qpOASES/Bounds.hpp
+  include/qpOASES/Bounds.ipp
+  include/qpOASES/Constants.hpp
+  include/qpOASES/ConstraintProduct.hpp
+  include/qpOASES/Constraints.hpp
+  include/qpOASES/Constraints.ipp
+  include/qpOASES/Flipper.hpp
+  include/qpOASES/Indexlist.hpp
+  include/qpOASES/Indexlist.ipp
+  include/qpOASES/Matrices.hpp
+  include/qpOASES/MessageHandling.hpp
+  include/qpOASES/MessageHandling.ipp
+  include/qpOASES/Options.hpp
+  include/qpOASES/QProblemB.hpp
+  include/qpOASES/QProblemB.ipp
+  include/qpOASES/QProblem.hpp
+  include/qpOASES/QProblem.ipp
+  include/qpOASES/SparseSolver.hpp
+  include/qpOASES/SQProblem.hpp
+  include/qpOASES/SQProblem.ipp
+  include/qpOASES/SQProblemSchur.hpp
+  include/qpOASES/SQProblemSchur.ipp
+  include/qpOASES/SubjectTo.hpp
+  include/qpOASES/SubjectTo.ipp
+  include/qpOASES/Types.hpp
+  include/qpOASES/UnitTesting.hpp
+  include/qpOASES/Utils.hpp
+  include/qpOASES/Utils.ipp
+  include/qpOASES/extras/OQPinterface.hpp
+  include/qpOASES/extras/SolutionAnalysis.hpp
+  include/qpOASES/extras/SolutionAnalysis.ipp
+  )
+
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 # compile qpOASES libraries
-FILE(GLOB SRC src/*.cpp)
+FILE(GLOB ${PROJECT_NAME}_SOURCES src/*.cpp)
 
 # library
-ADD_LIBRARY(qpOASES STATIC ${SRC})
-INSTALL(TARGETS qpOASES
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION lib
-)
-SET_TARGET_PROPERTIES(
-    qpOASES
-    PROPERTIES
-    SOVERSION ${PACKAGE_SO_VERSION}
-    )
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES})
 
-# headers
-INSTALL(FILES include/qpOASES.hpp
-  DESTINATION include)
-INSTALL(DIRECTORY include/qpOASES
-  DESTINATION include
-  FILES_MATCHING PATTERN "*.hpp"
-  PATTERN "*.ipp"
-  PATTERN ".svn" EXCLUDE)
+INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib)
 
 ############################################################
 ######################### examples #########################
@@ -142,9 +172,10 @@ SET(EXAMPLE_NAMES
 
 FOREACH(ELEMENT ${EXAMPLE_NAMES})
     ADD_EXECUTABLE(${ELEMENT} examples/${ELEMENT}.cpp)
-    TARGET_LINK_LIBRARIES(${ELEMENT} qpOASES)
+    TARGET_LINK_LIBRARIES(${ELEMENT} ${PROJECT_NAME})
 ENDFOREACH(ELEMENT ${EXAMPLE_NAMES})
 
+SETUP_PROJECT_FINALIZE()
 
 ##
 ##   end of file
